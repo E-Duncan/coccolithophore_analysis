@@ -11,7 +11,9 @@ gc.enable()
 
 
 def build_model_function(province_no):
+
     
+#---LOAD DATA    
     filename = '/data/datasets/Projects/TuringCoccolithophoreBlooms/no_backup/TuringCoccolithophoreBlooms/province_dataframes/province_'+str(province_no)+'.nc'
     d = xr.load_dataset(filename)
 
@@ -26,7 +28,7 @@ def build_model_function(province_no):
 
     gc.collect()    
 
-#---CALCULATE STANDARD DEVIATION
+#---CALCULATE STANDARD DEVIATION ON FULL TIME SERIES
     stacked = d.stack(coord=['longitude', 'latitude']).to_dataframe()
     stacked.drop(columns=['spatial_ref','longitude', 'latitude'],inplace=True)
     stacked.dropna(inplace=True)
@@ -42,7 +44,7 @@ def build_model_function(province_no):
     test = d.sel(time=slice_3)   
  
 
-#---SET UP MODEL
+#---SET UP DATA FOR MODEL BUILD
     from sklearn.metrics import confusion_matrix
 
     stacked_train = training.stack(coord=['longitude', 'latitude']).to_dataframe()
@@ -50,15 +52,18 @@ def build_model_function(province_no):
     
     stacked_train.drop(columns=['spatial_ref','longitude', 'latitude'],inplace=True)
     stacked_test.drop(columns=['spatial_ref','longitude', 'latitude'],inplace=True)
-    
+
+    #remove any pixels with NaN values
     stacked_train.dropna(inplace=True)
     stacked_test.dropna(inplace=True)
     
     stacked_train.reset_index(drop=True,inplace=True)
     stacked_test.reset_index(drop=True,inplace=True)
     print(stacked_train.rrs.std())
-    stacked_train['rrs'].where(stacked_train['rrs']<std, other=1, inplace=True)
-    
+    stacked_train['rrs'].where(stacked_train['rrs']<std, other=1, inplace=True) #set values higher than std to 1
+
+#---CLASSIFY PIXELS FOR TRAINING DATA
+    #Note we only retrain 0 and 1 (0<rrs<std are discarded)
     rrs_ones = (stacked_train['rrs'] == 1).sum()
     rrs_zeros = (stacked_train['rrs'] == 0).sum()
 
@@ -73,6 +78,7 @@ def build_model_function(province_no):
     print(len(full))
     stacked_train=full.sample(10000)
     
+#---CLASSIFY PIXELS FOR TEST DATA    
     stacked_test['rrs'].where(stacked_test['rrs']<std, other=1, inplace=True)
     rrs_ones = (stacked_test['rrs'] == 1).sum()
     rrs_zeros = (stacked_test['rrs'] == 0).sum()
@@ -89,7 +95,8 @@ def build_model_function(province_no):
     print(stacked_test.describe())
     
     gc.collect()
-    
+
+#---BUILD MODEL    
     X_train = stacked_train.drop(columns='rrs')
     y_train = stacked_train['rrs']
     
@@ -109,12 +116,12 @@ def build_model_function(province_no):
     cm = confusion_matrix(y_test,rf.predict(X_test))/y_test.size
     fig, ax = plt.subplots(1,1)
     sns.heatmap(cm, annot=True, fmt='.2%', cmap='Blues')
-    plt.savefig('/home/jovyan/lustre_scratch/models/province_'+str(province_no)+'_redo.png') #/data/datasets/Projects/TuringCoccolithophoreBlooms/no_backup/TuringCoccolithophoreBlooms/models/
+    plt.savefig('/home/jovyan/lustre_scratch/models/province_'+str(province_no)+'_redo.png') 
 
 
 #---SAVE OUT MODEL
     import joblib
-    joblib.dump(rf, "/home/jovyan/lustre_scratch/models/random_forest_"+str(province_no)+".joblib", compress=3) #/data/datasets/Projects/TuringCoccolithophoreBlooms/no_backup/TuringCoccolithophoreBlooms/models/
+    joblib.dump(rf, "/home/jovyan/lustre_scratch/models/random_forest_"+str(province_no)+".joblib", compress=3) 
 
     gc.collect()
 
