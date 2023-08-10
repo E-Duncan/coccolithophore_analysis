@@ -15,7 +15,7 @@ def build_model_function(province_no):
     filename = '/data/datasets/Projects/TuringCoccolithophoreBlooms/no_backup/TuringCoccolithophoreBlooms/province_dataframes/province_'+str(province_no)+'.nc'
     d = xr.load_dataset(filename)
 
-    #Set up slices
+    #Set up slices - used for crossvalidation (not shown in this model build)
     slice_0 = slice('1992-01-01','1995-12-01')
     slice_1 = slice('1996-01-01','2000-12-01')
     slice_2 = slice('2001-01-01','2004-12-01')
@@ -38,8 +38,6 @@ def build_model_function(province_no):
     gc.collect()
 
 #---SPLIT TEST AND TRAINING
-
-    #fold 2
     training = xr.concat([d.sel(time=slice_0),d.sel(time=slice_1),d.sel(time=slice_2),d.sel(time=slice_4),d.sel(time=slice_5)],'time')
     test = d.sel(time=slice_3)   
  
@@ -121,5 +119,5 @@ def build_model_function(province_no):
     gc.collect()
 
 
-for i in [0,23]:
+for i in np.arange(0,52):
     build_model_function(i)
