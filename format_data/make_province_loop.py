@@ -2,7 +2,7 @@ from make_dataframe_function import make_prov_file
 import numpy as np
 
 
-provinces = np.arange(52,53) #52)
+provinces = np.arange(0,53)
 
 #Load in longhurst shape file
 import fiona
