@@ -11,4 +11,4 @@ Scripts to process datasets to match resolution of AVHRR reflectance dataset.
 |         Mix layer depth 	        |             0.85 	           |        NN	          |            Monthly 	             |                  N/A	                 |          spatial_only_regrid.py          |
 ![image](https://github.com/E-Duncan/coccolithophore_analysis/assets/57486822/96bd6fac-d153-4230-8f7b-ebf504e1bedf)
 
-Data is then sectioned into Longhurst province dataframes for analysis. 
+Data is then sectioned into Longhurst province dataframes for analysis using make_dataframe_function.py in make_province_loop.py.
