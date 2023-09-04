@@ -75,7 +75,7 @@ def shap_analysis(province_no):
     
 #---CALCULATE SHAP VALUES
     import shap
-    sh_1 = shap.TreeExplainer(rf_1,X_test_1,model_output='probability',feature_perturbation='interventional')
+    sh_1 = shap.TreeExplainer(rf_1)
 
     try:
         sample_1 = X_test_1.sample(2000)
@@ -91,7 +91,7 @@ def shap_analysis(province_no):
 #---MAKE SHAP SUMMARY PLOT
     shap.summary_plot(sh_val_1[1],sample_1,plot_type='dot',cmap=cmap,show=False) #show=False)
     ax = plt.gca()
-    ax.set_xlim(-0.4, 0.4) 
+    ax.set_xlim(-0.5, 0.5) 
     plt.title('Province '+str(province_no))
     plt.savefig(figure_path.format(str(province_no)))
     plt.show()
